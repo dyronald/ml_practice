@@ -1,3 +1,6 @@
+# ml_practice
+Notes and codes written while picking up Machine Learning
+
 ## google_crash_course
 Colab exercises from https://developers.google.com/machine-learning/crash-course/ml-intro
 
