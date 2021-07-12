@@ -20,20 +20,21 @@ class MultiFeatureLinearRegression:
         return 1 / 2 / self.samples * np.sum(np.square(prediction - self.labels))
 
     def step_theta(self, prediction, theta):
-        theta_next = []
-        for j in range(len(theta)):
-            next = theta[j] - (self.alpha / self.samples *
-                               np.sum((prediction - self.labels) * self.features[:, j]))
-            theta_next.append(next)
-        return np.array(theta_next)
+        prediction_error = (prediction - self.labels).view()
+        prediction_error.shape = (-1, 1)
+        delta = (self.alpha 
+                / self.samples 
+                * np.sum(prediction_error * self.features, axis=0))
+        return theta - delta
 
     def train(self):
         theta = np.full((self.features.shape[1],), 1.0)
+        costs = []
         for _ in range(self.epochs):
             p = self.prediction(theta)
             theta = self.step_theta(p, theta)
-            print(self.cost(p))
-        return theta
+            costs.append(self.cost(p))
+        return theta, costs
 
 
 def clean_data(data, f_scale=None):
@@ -73,8 +74,13 @@ trainer = MultiFeatureLinearRegression(
     labels=labels,
     alpha=0.03,
     epochs=5000)
-theta = trainer.train()
+theta, costs = trainer.train()
 print(theta)
+
+
+# Plot costs
+plt.plot(costs)
+plt.show()
 
 
 # Plot prediction and label against each of the feature
@@ -103,7 +109,6 @@ tester = MultiFeatureLinearRegression(
     labels=sorted_labels)
 p = tester.prediction(theta)
 
-x = range(sorted_labels.shape[0])
-plt.scatter(x, p)
-plt.scatter(x, sorted_labels)
+plt.plot(p, '.b')
+plt.plot(sorted_labels, '.r')
 plt.show()
