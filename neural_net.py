@@ -18,7 +18,7 @@ class OutputLayer:
             nodes,
             ):
         self.nodes = nodes
-        self.deltas = np.zeros(len(self.nodes), self.nodes[0].theta.shape[0])
+        self.deltas = np.zeros((len(self.nodes), self.nodes[0].theta.shape[0]))
 
     def activation(self, a):
         self.input = a
@@ -28,22 +28,21 @@ class OutputLayer:
     def thetas(self):
         return np.array([n.theta for n in self.nodes])
 
-    def error_term(self, label):
+    def calc_error(self, label):
         f_prime = self.a * (1 - self.a)
         self.error = (label - self.a) * f_prime
         return self.error
 
     def accumulate_delta(self):
         delta = self.error * self.input.reshape(1, self.nodes[0].theta.shape[0])
-        self.delta += delta
+        self.deltas += delta
 
-    def step_theta(self, delta):
-        for d in delta:
-            for i in range(len(self.nodes)):
-                old = self.nodes[i].theta
-                self.nodes[i].theta = old + (0.1 * d[i])
+    def step_theta(self):
+        for i in range(len(self.nodes)):
+            old = self.nodes[i].theta
+            self.nodes[i].theta = old + (0.1 * self.deltas[i])
 
-        self.deltas = np.zeros(len(self.nodes), self.nodes[0].theta.shape[0])
+        self.deltas = np.zeros((len(self.nodes), self.nodes[0].theta.shape[0]))
 
 
 class Layer:
@@ -52,21 +51,35 @@ class Layer:
             nodes
             ):
         self.nodes = nodes
+        self.deltas = np.zeros((len(self.nodes), self.nodes[0].theta.shape[0]))
 
     def activation(self, a):
-        a = np.array([n.activation(a) for n in self.nodes])
-        return a
+        self.input = a
+        self.a = np.array([n.activation(a) for n in self.nodes])
+        return self.a
 
     def thetas(self):
         return np.array([n.theta for n in self.nodes])
 
-    def step_theta(self, delta):
-        # print('...')
-        for d in delta:
-            for i in range(len(self.nodes)):
-                # print(d[i])
-                old = self.nodes[i].theta
-                self.nodes[i].theta = old + (d[i])
+    def calc_error(self, next_layer):
+        f_prime = self.a * (1 - self.a)
+        self.error = (np.matmul(next_layer.error.reshape(1, -1), next_layer.thetas()))
+        self.error = self.error * f_prime
+        return self.error
+
+    def accumulate_delta(self):
+        for e in self.error:
+            e.shape = (-1, 1)
+            delta = np.matmul(e, self.input.reshape(1, len(self.input)))
+            self.deltas += delta
+
+    def step_theta(self):
+        for i in range(len(self.nodes)):
+            old = self.nodes[i].theta
+            self.nodes[i].theta = old + (self.deltas[i])
+
+        self.deltas = np.zeros((len(self.nodes), self.nodes[0].theta.shape[0]))
+
 
 class Network:
     def __init__(
@@ -90,8 +103,6 @@ class Network:
 
     def hypothesis(self):
         predictions = []
-        deltas = [[], []]
-        errors = [[], []]
         
         for i in range(len(self.features)):
             a = self.features[i]
@@ -102,25 +113,24 @@ class Network:
             hyp = a
             predictions.append(hyp)
 
-            error = (self.labels[i] - hyp) * self.f_prime(hyp)
-            delta = error * activations[-2].reshape(1, 4)
-            errors[-1].append(error)
-            deltas[-1].append(delta)
+            self.layers[-1].calc_error(self.labels[i])
+            self.layers[-1].accumulate_delta()
 
-            error = error * self.layers[1].thetas() * self.f_prime(activations[-2])
-            delta = np.matmul(error.T, self.features[i].reshape(1,3))
-            errors[-2].append(error)
-            deltas[-2].append(delta)
+            l = len(self.layers) - 2
+            while l >= 0:
+                self.layers[l].calc_error(self.layers[l+1])
+                self.layers[l].accumulate_delta()
+                l -= 1
 
-        return np.array(predictions), deltas
+        return np.array(predictions)
 
     def train(self, iterations=10):
         for _ in range(iterations):
-            hyp, deltas = self.hypothesis()
-            print(self.cost(hyp))
+            hyp = self.hypothesis()
+            print(f'cost: {self.cost(hyp)}')
 
-            for i in range(len(deltas)):
-                self.layers[i].step_theta(deltas[i])
+            for l in self.layers:
+                l.step_theta()
 
 
 X = np.array([
@@ -144,6 +154,12 @@ layers = [
     Layer(
         nodes = [
             LogisticNode(num_features=4,),
+            LogisticNode(num_features=4,),
+            LogisticNode(num_features=4,),
+        ]),
+    OutputLayer(
+        nodes = [
+            LogisticNode(num_features=3,),
         ])
 ]
 network = Network(
@@ -152,15 +168,9 @@ network = Network(
     labels=y,
 )
 
-network.train(1000)
+network.train(5000)
 
-hyp, deltas = network.hypothesis()
-# for d in deltas[0]:
-#     print(d)
-# print('')
-# print('')
-# for d in deltas[1]:
-#     print(d)
+hyp = network.hypothesis()
 
 print('')
-print(hyp)
+print(f'last hyp: {hyp}')
