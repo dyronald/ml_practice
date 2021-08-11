@@ -1,6 +1,21 @@
 import numpy as np
 
 
+def cost(hyps, labels):
+    m = hyps.shape[0]
+    diff_true = labels * np.log(hyps)
+    diff_false = (1-labels) * np.log(1-hyps)
+    return -1 / m * np.sum(diff_true + diff_false)
+
+
+def hypothesis(input, layers):
+    a = input
+    for layer in layers:
+        a = layer.activation(a)
+    hyp = a
+    return hyp
+
+
 class Network:
     def __init__(
             self, 
@@ -12,22 +27,11 @@ class Network:
         self.features = features
         self.labels = labels
 
-    def cost(self, hyp):
-        m = hyp.shape[0]
-        diff_true = self.labels * np.log(hyp)
-        diff_false = (1-self.labels) * np.log(1-hyp)
-        return -1 / m * np.sum(diff_true + diff_false)
-
-    def hypothesis(self):
+    def iterate(self):
         predictions = []
         
         for i in range(len(self.features)):
-            a = self.features[i]
-            activations = []
-            for layer in self.layers:
-                a = layer.activation(a)
-                activations.append(a)
-            hyp = a
+            hyp = hypothesis(self.features[i], self.layers)
             predictions.append(hyp)
 
             self.layers[-1].calc_error(self.labels[i])
@@ -44,12 +48,11 @@ class Network:
     def train(self, iterations=10):
         costs = []
         for _ in range(iterations):
-            hyp = self.hypothesis()
-            costs.append(self.cost(hyp))
+            hyps = self.iterate()
+            costs.append(cost(hyps, self.labels))
             print(f'cost {len(costs)}: {costs[-1]}')
 
             for l in self.layers:
                 l.step_theta()
 
         return costs
-

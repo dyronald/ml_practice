@@ -45,9 +45,9 @@ if __name__ == '__main__':
     l2 = lm.Layer(5, 4)
     l3 = lm.OutputLayer(4, 1)
 
-    l1.thetas = l_layer1.thetas()
-    l2.thetas = l_layer2.thetas()
-    l3.thetas = l_layer3.thetas()
+    l1.theta_mtx = l_layer1.thetas()
+    l2.theta_mtx = l_layer2.thetas()
+    l3.theta_mtx = l_layer3.thetas()
 
     old_net = Network(
         layers = [l_layer1, l_layer2, l_layer3],
@@ -69,8 +69,8 @@ if __name__ == '__main__':
     new_net.train(15)
     new_time = time.perf_counter() - new_start
 
-    old_hyp = old_net.hypothesis()
-    new_hyp = new_net.hypothesis()
+    old_hyp = old_net.iterate()
+    new_hyp = new_net.iterate()
     print('')
     print(f'old: {old_hyp}')
     print(f'new: {new_hyp}')
@@ -145,15 +145,15 @@ if __name__ == '__main__':
 
     print('--- theta3 ---')
     print(l_layer3.thetas())
-    print(l3.thetas)
-    print(l_layer3.thetas() == l3.thetas)
+    print(l3.thetas())
+    print(l_layer3.thetas() == l3.thetas())
 
     print('--- theta2 ---')
     print(l_layer2.thetas())
-    print(l2.thetas)
-    print(l_layer2.thetas() == l2.thetas)
+    print(l2.thetas())
+    print(l_layer2.thetas() == l2.thetas())
 
     print('--- theta1 ---')
     print(l_layer1.thetas())
-    print(l1.thetas)
-    print(l_layer1.thetas() == l1.thetas)
+    print(l1.thetas())
+    print(l_layer1.thetas() == l1.thetas())

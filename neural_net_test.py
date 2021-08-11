@@ -40,7 +40,7 @@ if __name__ == '__main__':
 
     network.train(5000)
 
-    hyp = network.hypothesis()
+    hyp = network.iterate()
 
     print('')
     print(f'last hyp: {hyp}')

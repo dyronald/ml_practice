@@ -71,7 +71,7 @@ network = Network(
 
 iterations = int(input('iterations: '))
 costs = network.train(iterations)
-hyp = network.hypothesis()
+hyp = network.iterate()
 
 plt.plot(costs, '.')
 plt.show()
@@ -108,5 +108,5 @@ print(f'miss: {miss}')
 print('thetas:')
 for l in range(len(layers)):
     print(f'{l}:')
-    print(layers[l].thetas)
+    print(layers[l].thetas())
     print('---')

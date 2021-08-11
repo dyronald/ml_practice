@@ -6,7 +6,11 @@ class LogisticNode:
             self,
             num_features,
             ):
-        self.theta = np.random.rand(num_features)
+        rng = np.random.default_rng()
+        self.theta = rng.uniform(
+            low=-1.0,
+            high=1.0,
+            size=(num_features,))
 
     def activation(self, x):
         z = np.sum(self.theta * x)
@@ -44,7 +48,7 @@ class Layer:
         e.shape = (-1, 1)
         delta = np.matmul(e, self.input.reshape(1, len(self.input)))
         self.deltas += delta
-        self.m += e.shape[0]
+        self.m += 1
 
         return self.deltas
 
