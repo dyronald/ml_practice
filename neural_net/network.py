@@ -9,6 +9,9 @@ def cost(hyps, labels):
 
 
 def hypothesis(input, layers):
+    """
+    Calculate prediction for a single sample
+    """
     a = input
     for layer in layers:
         a = layer.activation(a)

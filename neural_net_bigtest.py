@@ -7,6 +7,14 @@ num_samples = int(input('num samples: '))
 num_features = int(input('num features: '))
 
 def init_data():
+    """
+    Generate a randomized features and labels.
+    Feature elements are either 0 or 1.
+    Some proportion of elements are designated "white" or "black".
+    Label is set to 1 if both are true:
+      1. 1's in white elements reaches some threshold
+      2. 0's in black elements reaches some threshold
+    """
     rng = np.random.default_rng()
     features = rng.choice(a=[0,1], size=(num_samples, num_features))
 
@@ -29,6 +37,7 @@ def init_data():
 
     labels = np.array([labels]).T
     return features, labels
+
 
 X, y = init_data()
 print(f'x shape: {X.shape}')

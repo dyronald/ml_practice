@@ -2,6 +2,11 @@ import numpy as np
 from neural_net.network import Network, cost, hypothesis
 from neural_net.layer_matrix import Layer, OutputLayer
 
+"""
+References:
+https://towardsdatascience.com/how-to-debug-a-neural-network-with-gradient-checking-41deec0357a9
+https://www.youtube.com/watch?v=I-X8_EcGYik&list=PLZ9qNFMHZ-A4rycgrgOYma6zxF4BZGGPW&index=55
+"""
 
 class GradientCheck:
     def __init__(
@@ -26,14 +31,19 @@ class GradientCheck:
     def calc_deltas(self):
         for l in range(len(self.layers)):
             curr_mtx = self.layers[l].thetas()
+
+            # loop through each element in the theta matrix
             for i in range(curr_mtx.shape[0]):
                 for j in range(curr_mtx.shape[1]):
                     temp_layers = self.layers.copy()
+
+                    # cost for theta minus epsilon
                     l1 = Layer(initial_theta=curr_mtx)
                     l1.theta_mtx[i][j] -= self.epsilon
                     temp_layers[l] = l1
                     l1_cost = self.cost(temp_layers)
 
+                    # cost for theta plus epsilon
                     l2 = Layer(initial_theta=curr_mtx)
                     l2.theta_mtx[i][j] += self.epsilon
                     temp_layers[l] = l2
@@ -64,6 +74,7 @@ if __name__ == '__main__':
     y = np.array([[0, 1, 1, 0, 0, 0]]).T
     num_features = X.shape[1]
 
+    # Initialize first network; Uses back propagation
     n1l1 = Layer(num_features, 5)
     n1l2 = Layer(5, 4)
     n1l3 = OutputLayer(4, 1)
@@ -73,6 +84,9 @@ if __name__ == '__main__':
         labels = y,
     )
 
+    # Initialize second network; Uses Gradient check
+    # Layers take their thetas from the first network so we have identical
+    #   start states
     n2l1 = Layer(initial_theta=n1l1.thetas())
     n2l2 = Layer(initial_theta=n1l2.thetas())
     n2l3 = Layer(initial_theta=n1l3.thetas())
@@ -84,8 +98,8 @@ if __name__ == '__main__':
 
     pre_train = n2l1.thetas()
 
-    net1.train(1000)
-    net2.train(1000)
+    net1.train(100)
+    net2.train(100)
 
     print('post train:')
     print(n1l1.thetas())

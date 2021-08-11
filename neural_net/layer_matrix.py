@@ -42,6 +42,7 @@ class Layer:
         self.deltas += delta
         self.m += 1
 
+        # delta is a 2-d matrix (num layers, num inputs)
         return self.deltas
 
     def step_theta(self):

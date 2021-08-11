@@ -30,7 +30,10 @@ class Layer:
         self.alpha = alpha
 
     def activation(self, a):
+        assert(a.shape == self.nodes[0].theta.shape)
         self.input = a
+
+        # Apply input to each layer
         self.a = np.array([n.activation(a) for n in self.nodes])
         return self.a
 
@@ -45,14 +48,17 @@ class Layer:
 
     def accumulate_delta(self):
         e = self.error
-        e.shape = (-1, 1)
-        delta = np.matmul(e, self.input.reshape(1, len(self.input)))
+        e.shape = (-1, 1) # need error to as 2-dimensional matrix
+
+        delta = np.matmul(e, self.input.reshape(1, -1))
         self.deltas += delta
         self.m += 1
 
+        # delta is a 2-d matrix (num layers, num inputs)
         return self.deltas
 
     def step_theta(self):
+        # Apply each delta to its corresponding node
         for i in range(len(self.nodes)):
             old = self.nodes[i].theta
             self.nodes[i].theta = old + (self.alpha/self.m * self.deltas[i])
@@ -66,9 +72,3 @@ class OutputLayer(Layer):
         f_prime = self.a * (1 - self.a)
         self.error = (label - self.a) * f_prime
         return self.error
-
-    def accumulate_delta(self):
-        delta = self.error * self.input.reshape(1, self.nodes[0].theta.shape[0])
-        self.deltas += delta
-        self.m += 1
-        return self.deltas
