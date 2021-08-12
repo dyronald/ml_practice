@@ -80,20 +80,34 @@ network = Network(
 
 iterations = int(input('iterations: '))
 costs = network.train(iterations)
+
+print('thetas:')
+for l in range(len(layers)):
+    print(f'{l}:')
+    print(layers[l].thetas())
+    print('---')
+
+X_verify, y_verify = init_data()
+print(f'x shape: {X_verify.shape}')
+print(f'y shape: {y_verify.shape}')
+print(f'verify positives: {np.sum(y_verify)}')
+
+network.features = X_verify
+network.labels = y_verify
 hyp = network.iterate()
 
 plt.plot(costs, '.')
 plt.show()
 
 plt.plot(hyp, '.b')
-plt.plot(y, '.r')
+plt.plot(y_verify, '.r')
 plt.show()
 
 hit = 0
 maybe = 0
 miss = 0
 for i in range(len(hyp)):
-    if y[i] == 1:
+    if y_verify[i] == 1:
         if hyp[i] > 0.8:
             hit += 1
         elif hyp[i] > 0.5:
@@ -113,9 +127,3 @@ print(f'num_features: {num_features}')
 print(f'hit: {hit}')
 print(f'maybe: {maybe}')
 print(f'miss: {miss}')
-
-print('thetas:')
-for l in range(len(layers)):
-    print(f'{l}:')
-    print(layers[l].thetas())
-    print('---')
