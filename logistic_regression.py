@@ -75,7 +75,9 @@ def init_data():
 
     f_scale = []
     for f in range(features.shape[1]):
-        f_scale.append(features[:, f].std() * 3.0)
+        col = features[:, f]
+        factor = col.mean() + (col.std() * 3.0)
+        f_scale.append(factor)
     f_scale = np.array(f_scale)
 
     features /= f_scale
