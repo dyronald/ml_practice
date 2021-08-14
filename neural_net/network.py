@@ -26,6 +26,12 @@ class Network:
             features,
             labels,
             ):
+        """
+        features: 2-d matrix, where d1 is the number of samples; d2 is the number
+          of features
+        labels: 2-d matrix, where d1 is the number of samples; d2 is the number of
+          output nodes
+        """
         self.layers = layers
         self.features = features
         self.labels = labels

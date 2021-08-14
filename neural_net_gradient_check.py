@@ -51,6 +51,8 @@ class GradientCheck:
 
                     derivative = (l1_cost - l2_cost)/(2*self.epsilon)
                     self.layers[l].deltas[i][j] = derivative
+            
+            print(f'derivative layer {l}: {self.layers[l].deltas}')
 
     def train(self, iterations=1):
         for i in range(iterations):
@@ -96,18 +98,31 @@ if __name__ == '__main__':
         labels = y,
     )
 
-    pre_train = n2l1.thetas()
+    pre_train_1 = n2l1.thetas()
+    pre_train_2 = n2l2.thetas()
+    pre_train_3 = n2l3.thetas()
 
-    net1.train(100)
-    net2.train(100)
+    net1.train(1)
+    net2.train(1)
 
     print('post train:')
     print(n1l1.thetas())
     print(n2l1.thetas())
 
-    print('diffs')
-    print(pre_train - n1l1.thetas())
-    print(pre_train - n2l1.thetas())
+    d1 = np.concatenate((
+        (pre_train_1 - n1l1.thetas()).reshape(-1,),
+        (pre_train_2 - n1l2.thetas()).reshape(-1,),
+        (pre_train_3 - n1l3.thetas()).reshape(-1,),
+        ))
+    d2 = np.concatenate((
+        (pre_train_1 - n2l1.thetas()).reshape(-1,),
+        (pre_train_2 - n2l2.thetas()).reshape(-1,),
+        (pre_train_3 - n2l3.thetas()).reshape(-1,),
+        ))
+    numerator = np.linalg.norm(d1 - d2)
+    denominator = np.linalg.norm(d1) + np.linalg.norm(d2)
+    difference = numerator / denominator
 
-    print('diffs diffs')
-    print(n1l1.thetas() - n2l1.thetas())
+    print(numerator)
+    print(denominator)
+    print(f'difference: {difference}')
