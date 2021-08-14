@@ -5,50 +5,51 @@ from neural_net.layer_matrix import Layer, OutputLayer
 
 num_samples = int(input('num samples: '))
 num_features = int(input('num features: '))
+num_outputs = int(input('num outputs: '))
 
-def init_data():
+
+def init_multi_data():
     """
-    Generate a randomized features and labels.
-    Feature elements are either 0 or 1.
-    Some proportion of elements are designated "white" or "black".
-    Label is set to 1 if both are true:
-      1. 1's in white elements reaches some threshold
-      2. 0's in black elements reaches some threshold
+    Generates data with variable output nodes.
+    The features are divided equally to correlate with an output node.
+    The output node with the largest sum is set to 1. All others are zero.
     """
     rng = np.random.default_rng()
-    features = rng.choice(a=[0,1], size=(num_samples, num_features))
+    features = rng.normal(
+        loc=0.0,
+        scale=1.0,
+        size=(num_samples, num_features),
+        )
 
     labels = []
     for f in features:
-        white = 0
-        black = 0
-        white_factor = num_features / 2
-        for i in range(len(f)):
-            if (i+1) % white_factor == 0:
-                white += f[i]
-            else:
-                black += f[i]
+        totals = [0] * num_outputs
+        i = 0
+        for fi in f:
+            totals[i] += fi
+            i = (i+1) % num_outputs
 
-        white_region_size = num_features / white_factor
-        if white >= (white_region_size/2) and black <= ((num_features-white_region_size)/2):
-            labels.append(1)
-        else:
-            labels.append(0)
+        label = [0] * num_outputs
+        label[totals.index(max(totals))] = 1
+        labels.append(label)
 
-    labels = np.array([labels]).T
+    labels = np.array(labels)
     return features, labels
 
 
-X, y = init_data()
+X, y = init_multi_data()
+num_samples, num_features = X.shape
 print(f'x shape: {X.shape}')
 print(f'y shape: {y.shape}')
 
-positives = np.sum(y)
-print(f'positives: {positives}')
+print(y)
 
-if positives > (2/3 * num_samples) or positives < (1/3 * num_samples):
-    print('poor samples ratio. aborting.')
-    exit()
+for i in range(num_outputs):
+    positives = np.sum(y[:,i])
+    print(f'positives[{i}]: {positives}')
+    if positives < (num_features / num_outputs * 0.75):
+        print('poor samples ratio. aborting.')
+        exit()
 
 layers = []
 num_layers = int(input('num hidden layers: '))
@@ -68,7 +69,7 @@ output_alpha = float(input('output alpha: '))
 layers.append(
     OutputLayer(
         num_inputs=num_inputs,
-        num_nodes=1, 
+        num_nodes=y.shape[1], 
         alpha=output_alpha)
 )
 
@@ -87,7 +88,7 @@ for l in range(len(layers)):
     print(layers[l].thetas())
     print('---')
 
-X_verify, y_verify = init_data()
+X_verify, y_verify = init_multi_data()
 print(f'x shape: {X_verify.shape}')
 print(f'y shape: {y_verify.shape}')
 print(f'verify positives: {np.sum(y_verify)}')
@@ -104,26 +105,23 @@ plt.plot(y_verify, '.r')
 plt.show()
 
 hit = 0
-maybe = 0
 miss = 0
 for i in range(len(hyp)):
-    if y_verify[i] == 1:
-        if hyp[i] > 0.8:
-            hit += 1
-        elif hyp[i] > 0.5:
-            maybe += 1
-        else:
-            miss += 1
+    match = True
+    for k in range(len(y_verify[i])):
+        if y_verify[i][k] == 1 and hyp[i][k] < 0.5:
+            match = False
+            break
+        elif y_verify[i][k] == 0 and hyp[i][k] > 0.5:
+            match = False
+            break
+
+    if match:
+        hit += 1
     else:
-        if hyp[i] < 0.2:
-            hit += 1
-        elif hyp[i] < 0.5:
-            maybe += 1
-        else:
-            miss += 1
+        miss += 1
 
 print(f'num_samples: {num_samples}')
 print(f'num_features: {num_features}')
 print(f'hit: {hit}')
-print(f'maybe: {maybe}')
 print(f'miss: {miss}')
