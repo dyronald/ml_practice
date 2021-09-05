@@ -112,6 +112,7 @@ classes = [
 
 model.eval()
 x, y = test_data[0][0], test_data[0][1]
+x = x.to(device)
 with torch.no_grad():
     pred = model(x)
     predicted, actual = classes[pred[0].argmax(0)], classes[y]
