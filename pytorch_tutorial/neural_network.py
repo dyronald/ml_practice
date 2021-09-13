@@ -19,10 +19,34 @@ class Net(nn.Module):
 
     def forward(self, x):
         # Max pooling over a (2, 2) window
-        x = F.max_pool2d(F.relu(self.conv1(x)), (2, 2))
+        # x = F.max_pool2d(F.relu(self.conv1(x)), (2, 2))
+        print('.')
+        print('.')
+        print('.')
+        x = self.conv1(x)
+        print(f'1: {x.shape}')
+        # print(x)
+
+        x = F.relu(x)
+        print(f'2: {x.shape}')
+
+        x = F.max_pool2d(x, (2,2))
+        print(f'3: {x.shape}')
+
         # If the size is a square, you can specify with a single number
-        x = F.max_pool2d(F.relu(self.conv2(x)), 2)
+        # x = F.max_pool2d(F.relu(self.conv2(x)), 2)
+        x = self.conv2(x)
+        print(f'4: {x.shape}')
+
+        x = F.relu(x)
+        print(f'5: {x.shape}')
+
+        x = F.max_pool2d(x, 2)
+        print(f'6: {x.shape}')
+
         x = torch.flatten(x, 1) # flatten all dimensions except the batch dimension
+        print(f'7: {x.shape}')
+
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
@@ -30,20 +54,15 @@ class Net(nn.Module):
 
 
 net = Net()
-print(f'{net = }')
 optimizer = optim.SGD(net.parameters(), lr=0.01)
 
 params = list(net.parameters())
-print(f'{params[0] = }')
 print(params[0].size())  # conv1's .weight
 
 input = torch.randn(1, 1, 32, 32)
 out = net(input)
-print(f'{out = }')
 
 net.zero_grad()
 out.backward(torch.randn(1, 10))
-print(f'backward: {params[0].grad = }')
 
 optimizer.step()
-print(f'stepped {params[0] = }')
